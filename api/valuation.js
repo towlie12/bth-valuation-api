@@ -136,7 +136,14 @@ Rules:
     const notesHtml = (notes || "").replace(/\n/g, "<br>");
     const improvementHtml = (improvementIdeas || "").replace(/\n/g, "<br>");
 
-    const bulletsArray = Array.isArray(listingBullets) ? listingBullets : [];
+    // Trim listing content: only first sentence + first 3 bullets
+    const shortIntro =
+      (listingIntro || "").split(/(?<=\.)\s+/)[0] || listingIntro || "";
+
+    const bulletsArray = Array.isArray(listingBullets)
+      ? listingBullets.slice(0, 3)
+      : [];
+
     const bulletsHtml = bulletsArray
       .map((b) => `<li style="margin-bottom:4px;">${b}</li>`)
       .join("");
@@ -175,13 +182,13 @@ Rules:
           Based on the details you provided, your business could be worth approximately:
         </p>
 
-        <!-- Big valuation block -->
+        <!-- Big valuation block (recommended price first) -->
         <div style="background:#f9fafb;border-radius:14px;padding:18px 20px;margin-bottom:20px;border:1px solid #e5e7eb;box-shadow:0 6px 18px rgba(15,23,42,0.04);">
-          <div style="font-size:22px;font-weight:600;margin-bottom:4px;">
-            $${lowStr} – $${highStr} AUD
+          <div style="font-size:18px;font-weight:600;margin-bottom:4px;color:#111827;">
+            Recommended listing price: <span style="font-size:20px;">$${recStr} AUD</span>
           </div>
-          <div style="font-size:14px;margin-bottom:10px;color:#111827;">
-            Recommended listing price: <strong>$${recStr} AUD</strong>
+          <div style="font-size:13px;margin-bottom:10px;color:#4b5563;">
+            Estimated sale range: <strong>$${lowStr} – $${highStr} AUD</strong>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:#4b5563;margin-top:4px;">
             <div><strong>Multiple:</strong> ${multipleRange || "-"}</div>
@@ -265,24 +272,30 @@ Rules:
 
         <div style="display:flex;justify-content:center;margin-bottom:22px;">
           <div style="width:100%;max-width:320px;border-radius:18px;border:1px solid #e5e7eb;background:#ffffff;box-shadow:0 10px 30px rgba(15,23,42,0.08);overflow:hidden;">
-            <!-- Thumbnail image -->
-            <img src="${thumbUrl}" alt="" style="width:100%;height:90px;object-fit:cover;display:block;">
+            <!-- Thumbnail image with nicer ratio + fallback bg -->
+            <div style="width:100%;height:130px;background:#e5e7eb;overflow:hidden;">
+              <img src="${thumbUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+            </div>
 
-            <!-- Card body -->
+            <!-- Card body (simplified) -->
             <div style="padding:12px 14px 12px;">
-              <div style="font-size:14px;font-weight:600;margin-bottom:2px;color:#111827;">
+              <div style="font-size:14px;font-weight:600;margin-bottom:4px;color:#111827;">
                 ${listingTitle || "Profitable business opportunity"}
               </div>
               <div style="font-size:12px;color:#4b5563;margin-bottom:6px;">
                 <span style="font-weight:600;">Asking price:</span> $${recStr} AUD
               </div>
-              <div style="font-size:12px;color:#4b5563;margin-bottom:10px;line-height:1.5;">
-                ${listingIntro || ""}
-              </div>
+              ${
+                shortIntro
+                  ? `<div style="font-size:12px;color:#4b5563;margin-bottom:8px;line-height:1.5;">
+                       ${shortIntro}
+                     </div>`
+                  : ""
+              }
 
-              <div style="border-top:1px solid #e5e7eb;margin:8px 0 8px;"></div>
+              <div style="border-top:1px solid #e5e7eb;margin:6px 0 8px;"></div>
 
-              <!-- Stats rows -->
+              <!-- Compact stats rows -->
               <table cellpadding="0" cellspacing="0" style="width:100%;font-size:12px;color:#4b5563;">
                 <tbody>
                   <tr>
@@ -307,18 +320,12 @@ Rules:
                     <td style="padding:4px 0;text-align:right;font-weight:500;">${location ||
                       "-"}</td>
                   </tr>
-                  <tr>
-                    <td style="padding:4px 0;">Established</td>
-                    <td style="padding:4px 0;text-align:right;font-weight:500;">${
-                      yearsOperating || "N/A"
-                    }+ years</td>
-                  </tr>
                 </tbody>
               </table>
 
               ${
                 bulletsHtml
-                  ? `<div style="border-top:1px solid #e5e7eb;margin:8px 0 6px;"></div>
+                  ? `<div style="border-top:1px solid #e5e7eb;margin:6px 0 4px;"></div>
                      <ul style="padding-left:16px;margin:4px 0 0;font-size:11px;color:#4b5563;line-height:1.5;">${bulletsHtml}</ul>`
                   : ""
               }
