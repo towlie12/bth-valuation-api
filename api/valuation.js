@@ -10,6 +10,46 @@ function formatAUD(value) {
   return Math.round(Number(value)).toLocaleString("en-AU");
 }
 
+// --- NEW: map categories to thumbnail URLs ---
+const categoryImages = {
+  cafe: "https://source.unsplash.com/600x400/?cafe,coffee-shop,interior",
+  restaurant: "https://source.unsplash.com/600x400/?restaurant,dining,interior",
+  retail: "https://source.unsplash.com/600x400/?retail,store,shop,interior",
+  services: "https://source.unsplash.com/600x400/?office,workspace,team",
+  trades: "https://source.unsplash.com/600x400/?workshop,industrial,warehouse",
+  beauty: "https://source.unsplash.com/600x400/?salon,beauty,spa,interior",
+  fitness: "https://source.unsplash.com/600x400/?gym,fitness,studio",
+  healthcare: "https://source.unsplash.com/600x400/?clinic,medical,interior",
+  automotive: "https://source.unsplash.com/600x400/?auto,garage,car,workshop",
+  online: "https://source.unsplash.com/600x400/?ecommerce,online,business",
+  generic: "https://source.unsplash.com/600x400/?small,business,interior",
+};
+
+// --- NEW: guess category from the free-text businessType ---
+function inferCategory(businessTypeRaw = "") {
+  const s = businessTypeRaw.toLowerCase();
+
+  if (s.match(/\bcafe|coffee|espresso|coffee shop/)) return "cafe";
+  if (s.match(/\brestaurant|bistro|takeaway|take-away|food truck|burger|pizza/))
+    return "restaurant";
+  if (s.match(/\bretail|shop|store|boutique|florist|grocery|supermarket/))
+    return "retail";
+  if (s.match(/\bsalon|barber|spa|beauty|nail/)) return "beauty";
+  if (s.match(/\bgym|fitness|pilates|yoga|personal training/)) return "fitness";
+  if (s.match(/\bclinic|medical|dental|dentist|physio|chiro|pharmacy/))
+    return "healthcare";
+  if (s.match(/\bauto|mechanic|panel beat|car wash|detailing|tyre/))
+    return "automotive";
+  if (s.match(/\bplumb|electric|air[- ]?con|hvac|construction|builder|trade/))
+    return "trades";
+  if (s.match(/\bonline|e[- ]?commerce|store\s*online|dropship|saas|software/))
+    return "online";
+  if (s.match(/\boffice|consult|accountant|law|legal|agency|marketing|design/))
+    return "services";
+
+  return "generic";
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -106,12 +146,16 @@ Rules:
       year: "numeric",
     });
 
+    // NEW: pick thumbnail URL based on inferred category
+    const category = inferCategory(businessType);
+    const thumbUrl = categoryImages[category] || categoryImages.generic;
+
     // 2) Build premium HTML email
     const html = `
   <div style="background-color:#f3f4f6;padding:32px 12px;">
     <div style="max-width:720px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e5e7eb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111827;box-shadow:0 18px 45px rgba(15,23,42,0.12);">
 
-      <!-- Header (simplified, no awkward pill) -->
+      <!-- Header -->
       <div style="background:linear-gradient(135deg,#020617,#0f766e);padding:20px 24px 22px;">
         <div style="font-size:18px;font-weight:600;color:#ffffff;">BizTradeHub</div>
         <div style="font-size:13px;color:#cbd5f5;margin-top:4px;">AI-powered business valuation report</div>
@@ -145,7 +189,7 @@ Rules:
         </div>
 
         <!-- Executive summary -->
-        <div style="background:#f3f4ff;border-radius:12px;padding:12px 14px;margin-bottom:24px;border:1st solid #e0e7ff;border:1px solid #e0e7ff;">
+        <div style="background:#f3f4ff;border-radius:12px;padding:12px 14px;margin-bottom:24px;border:1px solid #e0e7ff;">
           <div style="font-size:13px;font-weight:600;margin-bottom:4px;color:#111827;">Executive summary</div>
           <ul style="padding-left:18px;margin:4px 0 0;font-size:13px;line-height:1.6;color:#374151;">
             <li>We estimate your business could sell in the range of <strong>$${lowStr} – $${highStr} AUD</strong>, with a recommended listing price of <strong>$${recStr} AUD</strong>.</li>
@@ -211,7 +255,7 @@ Rules:
           ${improvementHtml || ""}
         </p>
 
-        <!-- Listing teaser as a card -->
+        <!-- Listing teaser as a card with thumbnail -->
         <h2 style="font-size:16px;margin:0 0 8px;">How your listing could look</h2>
         <p style="font-size:13px;line-height:1.6;margin:0 0 12px;color:#4b5563;">
           Here's a short preview of how your business could appear on BizTradeHub:
@@ -219,8 +263,8 @@ Rules:
 
         <div style="display:flex;justify-content:center;margin-bottom:22px;">
           <div style="width:100%;max-width:320px;border-radius:18px;border:1px solid #e5e7eb;background:#ffffff;box-shadow:0 10px 30px rgba(15,23,42,0.08);overflow:hidden;">
-            <!-- Fake image / banner -->
-            <div style="height:120px;background-image:linear-gradient(135deg,#0f766e,#22c55e);background-size:cover;background-position:center;"></div>
+            <!-- Thumbnail image -->
+            <img src="${thumbUrl}" alt="Business thumbnail" style="width:100%;height:90px;object-fit:cover;display:block;">
 
             <!-- Card body -->
             <div style="padding:12px 14px 12px;">
@@ -240,30 +284,30 @@ Rules:
               <table cellpadding="0" cellspacing="0" style="width:100%;font-size:12px;color:#4b5563;">
                 <tbody>
                   <tr>
-                    <td style="padding:2px 0;">Revenue</td>
-                    <td style="padding:2px 0;text-align:right;font-weight:500;">$${formatAUD(
+                    <td style="padding:4px 0;">Revenue</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:500;">$${formatAUD(
                       annualRevenue
                     )}/year</td>
                   </tr>
                   <tr>
-                    <td style="padding:2px 0;">Profit</td>
-                    <td style="padding:2px 0;text-align:right;font-weight:500;">$${formatAUD(
+                    <td style="padding:4px 0;">Profit</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:500;">$${formatAUD(
                       annualProfit
                     )}/year</td>
                   </tr>
                   <tr>
-                    <td style="padding:2px 0;">Staff</td>
-                    <td style="padding:2px 0;text-align:right;font-weight:500;">${staffCount ||
+                    <td style="padding:4px 0;">Staff</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:500;">${staffCount ||
                       "-"} employees</td>
                   </tr>
                   <tr>
-                    <td style="padding:2px 0;">Location</td>
-                    <td style="padding:2px 0;text-align:right;font-weight:500;">${location ||
+                    <td style="padding:4px 0;">Location</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:500;">${location ||
                       "-"}</td>
                   </tr>
                   <tr>
-                    <td style="padding:2px 0;">Established</td>
-                    <td style="padding:2px 0;text-align:right;font-weight:500;">${
+                    <td style="padding:4px 0;">Established</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:500;">${
                       yearsOperating || "N/A"
                     }+ years</td>
                   </tr>
