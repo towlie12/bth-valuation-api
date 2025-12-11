@@ -182,20 +182,24 @@ Rules:
           Based on the details you provided, your business could be worth approximately:
         </p>
 
-        <!-- Big valuation block (recommended price first) -->
+                <!-- Big valuation block (recommended price first, cleaner stats layout) -->
         <div style="background:#f9fafb;border-radius:14px;padding:18px 20px;margin-bottom:20px;border:1px solid #e5e7eb;box-shadow:0 6px 18px rgba(15,23,42,0.04);">
           <div style="font-size:18px;font-weight:600;margin-bottom:4px;color:#111827;">
             Recommended listing price: <span style="font-size:20px;">$${recStr} AUD</span>
           </div>
-          <div style="font-size:13px;margin-bottom:10px;color:#4b5563;">
+
+          <div style="font-size:13px;margin-bottom:8px;color:#4b5563;">
             Estimated sale range: <strong>$${lowStr} – $${highStr} AUD</strong>
           </div>
-          <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:#4b5563;margin-top:4px;">
+
+          <!-- Stacked stats for email/mobile friendliness -->
+          <div style="font-size:12px;color:#4b5563;line-height:1.5;margin-top:4px;">
             <div><strong>Multiple:</strong> ${multipleRange || "-"}</div>
             <div><strong>Confidence:</strong> ${confidence || "Medium"}</div>
             <div><strong>Expected sale window:</strong> ${sellTime || "3–9 months"}</div>
           </div>
         </div>
+
 
         <!-- Executive summary -->
         <div style="background:#f3f4ff;border-radius:12px;padding:12px 14px;margin-bottom:24px;border:1px solid #e0e7ff;">
