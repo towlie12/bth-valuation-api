@@ -268,14 +268,15 @@ Rules:
           ${improvementHtml || ""}
         </p>
 
-        <!-- Listing teaser as a card with thumbnail -->
+           <!-- Listing teaser as a card with thumbnail -->
         <h2 style="font-size:16px;margin:0 0 8px;">How your listing could look</h2>
         <p style="font-size:13px;line-height:1.6;margin:0 0 12px;color:#4b5563;">
           Here's a short preview of how your business could appear on BizTradeHub:
         </p>
 
-        <div style="display:flex;justify-content:center;margin-bottom:22px;">
-          <div style="width:100%;max-width:320px;border-radius:18px;border:1px solid #e5e7eb;background:#ffffff;box-shadow:0 10px 30px rgba(15,23,42,0.08);overflow:hidden;">
+        <!-- Centered card -->
+        <div style="text-align:center;margin-bottom:16px;">
+          <div style="display:inline-block;width:100%;max-width:320px;border-radius:18px;border:1px solid #e5e7eb;background:#ffffff;box-shadow:0 10px 30px rgba(15,23,42,0.08);overflow:hidden;text-align:left;">
             <!-- Thumbnail image with nicer ratio + fallback bg -->
             <div style="width:100%;height:130px;background:#e5e7eb;overflow:hidden;">
               <img src="${thumbUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
@@ -341,53 +342,13 @@ Rules:
           </div>
         </div>
 
-        <!-- CTA -->
-        <div style="margin:10px 0 6px;text-align:center;">
-          <a href="https://biztradehub.com" style="display:inline-block;background:#111827;color:#ffffff;font-size:14px;font-weight:500;padding:11px 22px;border-radius:999px;text-decoration:none;">
-            Start your listing – it only takes a few minutes
+        <!-- CTA tied directly to the preview -->
+        <div style="text-align:center;margin:4px 0 14px;">
+          <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">
+            Like this preview? Turn it into a live listing on BizTradeHub in just a few minutes.
+          </div>
+          <a href="https://biztradehub.com"
+             style="display:inline-block;background:#111827;color:#ffffff;font-size:14px;font-weight:500;padding:11px 24px;border-radius:999px;text-decoration:none;">
+            Start your listing from this estimate
           </a>
         </div>
-
-        <!-- Disclaimer -->
-        <p style="font-size:11px;line-height:1.5;margin-top:18px;color:#9ca3af;">
-          This is an AI-generated estimate only and does not constitute financial, legal, or taxation advice. 
-          It is based solely on the figures you entered and general market benchmarks for small businesses in Australia. 
-          For a formal valuation, please consult a qualified accountant, broker, or financial adviser.
-        </p>
-      </div>
-
-      <!-- Footer -->
-      <div style="background:#f9fafb;padding:10px 20px 14px;border-top:1px solid #e5e7eb;">
-        <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.5;">
-          BizTradeHub Pty Ltd · Sydney, Australia<br/>
-          You’re receiving this email because you requested a business valuation on BizTradeHub.<br/>
-          © ${today.getFullYear()} BizTradeHub. All rights reserved.
-        </p>
-      </div>
-
-    </div>
-  </div>
-`;
-
-    // 3) Send the email using Resend
-    const { error: emailError } = await resend.emails.send({
-      // Change this to your verified domain once ready:
-      // from: "BizTradeHub <valuation@biztradehub.com>",
-      from: "BizTradeHub <onboarding@resend.dev>",
-      to: [email],
-      subject: "Your BizTradeHub business valuation estimate",
-      html,
-    });
-
-    if (emailError) {
-      console.error("Resend email error:", emailError);
-      // Still return 200 so Framer shows success
-    }
-
-    // 4) Return success to Framer
-    return res.status(200).json({ ok: true });
-  } catch (err) {
-    console.error("Valuation error:", err);
-    return res.status(500).json({ error: "Server error" });
-  }
-}
