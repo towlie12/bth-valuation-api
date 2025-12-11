@@ -186,7 +186,8 @@ Rules:
 
     // 3) Send the email using Resend
     const { error: emailError } = await resend.emails.send({
-      from: "BizTradeHub <valuation@biztradehub.com>", // use your verified domain here
+      //from: "BizTradeHub <valuation@biztradehub.com>", // use your verified domain here
+      from: "BizTradeHub <onboarding@resend.dev>",
       to: [email],
       subject: "Your BizTradeHub business valuation estimate",
       html,
