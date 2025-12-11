@@ -10,24 +10,24 @@ function formatAUD(value) {
   return Math.round(Number(value)).toLocaleString("en-AU");
 }
 
-// --- Category → thumbnail URLs on YOUR domain ---
+// Category → thumbnail URLs on YOUR domain
 const BASE_THUMB = "https://bth-valuation-api.vercel.app/thumbnails";
 
 const categoryImages = {
-  cafe:        `${BASE_THUMB}/cafe.jpg`,
-  restaurant:  `${BASE_THUMB}/restaurant.jpg`,
-  retail:      `${BASE_THUMB}/retail.jpg`,
-  services:    `${BASE_THUMB}/services.jpg`,
-  trades:      `${BASE_THUMB}/trades.jpg`,
-  beauty:      `${BASE_THUMB}/beauty.jpg`,
-  fitness:     `${BASE_THUMB}/fitness.jpg`,
-  healthcare:  `${BASE_THUMB}/healthcare.jpg`,
-  automotive:  `${BASE_THUMB}/automotive.jpg`,
-  online:      `${BASE_THUMB}/online.jpg`,
-  generic:     `${BASE_THUMB}/generic.jpg`,
+  cafe: `${BASE_THUMB}/cafe.jpg`,
+  restaurant: `${BASE_THUMB}/restaurant.jpg`,
+  retail: `${BASE_THUMB}/retail.jpg`,
+  services: `${BASE_THUMB}/services.jpg`,
+  trades: `${BASE_THUMB}/trades.jpg`,
+  beauty: `${BASE_THUMB}/beauty.jpg`,
+  fitness: `${BASE_THUMB}/fitness.jpg`,
+  healthcare: `${BASE_THUMB}/healthcare.jpg`,
+  automotive: `${BASE_THUMB}/automotive.jpg`,
+  online: `${BASE_THUMB}/online.jpg`,
+  generic: `${BASE_THUMB}/generic.jpg`,
 };
 
-// --- Guess category from the free-text businessType ---
+// Guess category from the free-text businessType
 function inferCategory(businessTypeRaw = "") {
   const s = businessTypeRaw.toLowerCase();
 
@@ -136,7 +136,7 @@ Rules:
     const notesHtml = (notes || "").replace(/\n/g, "<br>");
     const improvementHtml = (improvementIdeas || "").replace(/\n/g, "<br>");
 
-    // Trim listing content: only first sentence + first 3 bullets
+    // Trim listing content: first sentence + first 3 bullets
     const shortIntro =
       (listingIntro || "").split(/(?<=\.)\s+/)[0] || listingIntro || "";
 
@@ -182,7 +182,7 @@ Rules:
           Based on the details you provided, your business could be worth approximately:
         </p>
 
-                <!-- Big valuation block (recommended price first, cleaner stats layout) -->
+        <!-- Big valuation block (recommended price first, stacked stats) -->
         <div style="background:#f9fafb;border-radius:14px;padding:18px 20px;margin-bottom:20px;border:1px solid #e5e7eb;box-shadow:0 6px 18px rgba(15,23,42,0.04);">
           <div style="font-size:18px;font-weight:600;margin-bottom:4px;color:#111827;">
             Recommended listing price: <span style="font-size:20px;">$${recStr} AUD</span>
@@ -192,14 +192,12 @@ Rules:
             Estimated sale range: <strong>$${lowStr} – $${highStr} AUD</strong>
           </div>
 
-          <!-- Stacked stats for email/mobile friendliness -->
           <div style="font-size:12px;color:#4b5563;line-height:1.5;margin-top:4px;">
             <div><strong>Multiple:</strong> ${multipleRange || "-"}</div>
             <div><strong>Confidence:</strong> ${confidence || "Medium"}</div>
             <div><strong>Expected sale window:</strong> ${sellTime || "3–9 months"}</div>
           </div>
         </div>
-
 
         <!-- Executive summary -->
         <div style="background:#f3f4ff;border-radius:12px;padding:12px 14px;margin-bottom:24px;border:1px solid #e0e7ff;">
@@ -268,7 +266,7 @@ Rules:
           ${improvementHtml || ""}
         </p>
 
-           <!-- Listing teaser as a card with thumbnail -->
+        <!-- Listing teaser as a card with thumbnail -->
         <h2 style="font-size:16px;margin:0 0 8px;">How your listing could look</h2>
         <p style="font-size:13px;line-height:1.6;margin:0 0 12px;color:#4b5563;">
           Here's a short preview of how your business could appear on BizTradeHub:
@@ -282,7 +280,7 @@ Rules:
               <img src="${thumbUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
             </div>
 
-            <!-- Card body (simplified) -->
+            <!-- Card body -->
             <div style="padding:12px 14px 12px;">
               <div style="font-size:14px;font-weight:600;margin-bottom:4px;color:#111827;">
                 ${listingTitle || "Profitable business opportunity"}
@@ -300,7 +298,6 @@ Rules:
 
               <div style="border-top:1px solid #e5e7eb;margin:6px 0 8px;"></div>
 
-              <!-- Compact stats rows -->
               <table cellpadding="0" cellspacing="0" style="width:100%;font-size:12px;color:#4b5563;">
                 <tbody>
                   <tr>
@@ -342,7 +339,7 @@ Rules:
           </div>
         </div>
 
-        <!-- CTA tied directly to the preview -->
+        <!-- CTA tied to preview -->
         <div style="text-align:center;margin:4px 0 14px;">
           <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">
             Like this preview? Turn it into a live listing on BizTradeHub in just a few minutes.
@@ -352,3 +349,46 @@ Rules:
             Start your listing from this estimate
           </a>
         </div>
+
+        <!-- Disclaimer -->
+        <p style="font-size:11px;line-height:1.5;margin-top:18px;color:#9ca3af;">
+          This is an AI-generated estimate only and does not constitute financial, legal, or taxation advice. 
+          It is based solely on the figures you entered and general market benchmarks for small businesses in Australia. 
+          For a formal valuation, please consult a qualified accountant, broker, or financial adviser.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div style="background:#f9fafb;padding:10px 20px 14px;border-top:1px solid #e5e7eb;">
+        <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.5;">
+          BizTradeHub Pty Ltd · Sydney, Australia<br/>
+          You’re receiving this email because you requested a business valuation on BizTradeHub.<br/>
+          © ${today.getFullYear()} BizTradeHub. All rights reserved.
+        </p>
+      </div>
+
+    </div>
+  </div>
+`;
+
+    // 3) Send the email using Resend
+    const { error: emailError } = await resend.emails.send({
+      // Later: from: "BizTradeHub <valuation@biztradehub.com>",
+      from: "BizTradeHub <onboarding@resend.dev>",
+      to: [email],
+      subject: "Your BizTradeHub business valuation estimate",
+      html,
+    });
+
+    if (emailError) {
+      console.error("Resend email error:", emailError);
+      // Still return 200 so Framer shows success
+    }
+
+    // 4) Return success to Framer
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error("Valuation error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+}
