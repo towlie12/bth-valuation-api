@@ -27,6 +27,8 @@ const categoryImages = {
   generic: `${BASE_THUMB}/generic.jpg`,
 };
 
+const allowedCategories = Object.keys(categoryImages);
+
 // Guess category from the free-text businessType
 function inferCategory(businessTypeRaw = "") {
   const s = businessTypeRaw.toLowerCase();
@@ -90,6 +92,7 @@ Return ONLY JSON with these keys:
 - listingTitle (short, compelling listing title for a marketplace)
 - listingIntro (2–3 sentence paragraph as if it were the opening of a listing)
 - listingBullets (array of 3–5 short bullet points highlighting key strengths)
+- imageCategory (string, one of: "cafe", "restaurant", "retail", "services", "trades", "beauty", "fitness", "healthcare", "automotive", "online", "generic")
 
 Inputs:
 - Business type: ${businessType}
@@ -104,6 +107,7 @@ Rules:
 - Be slightly conservative.
 - Currency is AUD.
 - Make the listing text sound clear, confident and professional, not salesy.
+- For imageCategory, choose the single best-fitting category from the allowed list only.
 `;
 
     // 1) Ask GPT for a valuation + listing teaser
@@ -126,6 +130,7 @@ Rules:
       listingTitle,
       listingIntro,
       listingBullets,
+      imageCategory,
     } = data;
 
     const lowStr = formatAUD(lowEstimate);
@@ -155,9 +160,20 @@ Rules:
       year: "numeric",
     });
 
-    // Pick thumbnail URL based on inferred category
-    const category = inferCategory(businessType);
-    const thumbUrl = categoryImages[category] || categoryImages.generic;
+    // Choose image category: GPT's value first, then fallback to heuristic
+    let chosenCategory;
+    if (typeof imageCategory === "string") {
+      const lowered = imageCategory.toLowerCase().trim();
+      if (allowedCategories.includes(lowered)) {
+        chosenCategory = lowered;
+      }
+    }
+    if (!chosenCategory) {
+      chosenCategory = inferCategory(businessType);
+    }
+
+    const thumbUrl =
+      categoryImages[chosenCategory] || categoryImages.generic;
 
     // 2) Build premium HTML email
     const html = `
@@ -213,89 +229,100 @@ Rules:
           </ul>
         </div>
 
-        <!-- Listing preview moved up for conversion -->
+        <!-- Listing preview: card on the left, copy + CTA on the right -->
         <h2 style="font-size:16px;margin:0 0 6px;">See how your business would appear to buyers</h2>
-        <p style="font-size:13px;line-height:1.6;margin:0 0 12px;color:#4b5563;">
-          Here’s a preview of how your business could look as a live listing on BizTradeHub:
+        <p style="font-size:13px;line-height:1.6;margin:0 0 10px;color:#4b5563;">
+          Here’s how your business could look as a live listing on BizTradeHub, based on the details you provided:
         </p>
 
-        <!-- Centered card -->
-        <div style="text-align:center;margin-bottom:16px;">
-          <div style="display:inline-block;width:100%;max-width:320px;border-radius:18px;border:1px solid #e5e7eb;background:#ffffff;box-shadow:0 10px 30px rgba(15,23,42,0.08);overflow:hidden;text-align:left;">
-            <!-- Thumbnail image with nicer ratio + fallback bg -->
-            <div style="width:100%;height:130px;background:#e5e7eb;overflow:hidden;">
-              <img src="${thumbUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
-            </div>
+        <div style="margin-bottom:22px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">
+            <tr>
+              <!-- Card column -->
+              <td style="vertical-align:top;padding-right:16px;">
+                <div style="width:100%;max-width:320px;border-radius:18px;border:1px solid #e5e7eb;background:#ffffff;box-shadow:0 10px 30px rgba(15,23,42,0.08);overflow:hidden;text-align:left;">
+                  <div style="width:100%;height:130px;background:#e5e7eb;overflow:hidden;">
+                    <img src="${thumbUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+                  </div>
+                  <div style="padding:12px 14px 12px;">
+                    <div style="font-size:14px;font-weight:600;margin-bottom:4px;color:#111827;">
+                      ${listingTitle || "Profitable business opportunity"}
+                    </div>
+                    <div style="font-size:12px;color:#4b5563;margin-bottom:6px;">
+                      <span style="font-weight:600;">Asking price:</span> $${recStr} AUD
+                    </div>
+                    ${
+                      shortIntro
+                        ? `<div style="font-size:12px;color:#4b5563;margin-bottom:8px;line-height:1.5;">
+                             ${shortIntro}
+                           </div>`
+                        : ""
+                    }
+                    <div style="border-top:1px solid #e5e7eb;margin:6px 0 8px;"></div>
+                    <table cellpadding="0" cellspacing="0" style="width:100%;font-size:12px;color:#4b5563;">
+                      <tbody>
+                        <tr>
+                          <td style="padding:4px 0;">Revenue</td>
+                          <td style="padding:4px 0;text-align:right;font-weight:500;">$${formatAUD(
+                            annualRevenue
+                          )}/year</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:4px 0;">Profit</td>
+                          <td style="padding:4px 0;text-align:right;font-weight:500;">$${formatAUD(
+                            annualProfit
+                          )}/year</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:4px 0;">Staff</td>
+                          <td style="padding:4px 0;text-align:right;font-weight:500;">${staffCount ||
+                            "-"} employees</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:4px 0;">Location</td>
+                          <td style="padding:4px 0;text-align:right;font-weight:500;">${location ||
+                            "-"}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    ${
+                      bulletsHtml
+                        ? `<div style="border-top:1px solid #e5e7eb;margin:6px 0 4px;"></div>
+                           <ul style="padding-left:16px;margin:4px 0 0;font-size:11px;color:#4b5563;line-height:1.5;">${bulletsHtml}</ul>`
+                        : ""
+                    }
+                    <div style="margin-top:8px;font-size:10px;color:#9ca3af;text-align:center;">
+                      Demo preview – your full listing can include more details and photos.
+                    </div>
+                  </div>
+                </div>
+              </td>
 
-            <!-- Card body -->
-            <div style="padding:12px 14px 12px;">
-              <div style="font-size:14px;font-weight:600;margin-bottom:4px;color:#111827;">
-                ${listingTitle || "Profitable business opportunity"}
-              </div>
-              <div style="font-size:12px;color:#4b5563;margin-bottom:6px;">
-                <span style="font-weight:600;">Asking price:</span> $${recStr} AUD
-              </div>
-
-              ${
-                shortIntro
-                  ? `<div style="font-size:12px;color:#4b5563;margin-bottom:8px;line-height:1.5;">
-                       ${shortIntro}
-                     </div>`
-                  : ""
-              }
-
-              <div style="border-top:1px solid #e5e7eb;margin:6px 0 8px;"></div>
-
-              <table cellpadding="0" cellspacing="0" style="width:100%;font-size:12px;color:#4b5563;">
-                <tbody>
-                  <tr>
-                    <td style="padding:4px 0;">Revenue</td>
-                    <td style="padding:4px 0;text-align:right;font-weight:500;">$${formatAUD(
-                      annualRevenue
-                    )}/year</td>
-                  </tr>
-                  <tr>
-                    <td style="padding:4px 0;">Profit</td>
-                    <td style="padding:4px 0;text-align:right;font-weight:500;">$${formatAUD(
-                      annualProfit
-                    )}/year</td>
-                  </tr>
-                  <tr>
-                    <td style="padding:4px 0;">Staff</td>
-                    <td style="padding:4px 0;text-align:right;font-weight:500;">${staffCount ||
-                      "-"} employees</td>
-                  </tr>
-                  <tr>
-                    <td style="padding:4px 0;">Location</td>
-                    <td style="padding:4px 0;text-align:right;font-weight:500;">${location ||
-                      "-"}</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              ${
-                bulletsHtml
-                  ? `<div style="border-top:1px solid #e5e7eb;margin:6px 0 4px;"></div>
-                     <ul style="padding-left:16px;margin:4px 0 0;font-size:11px;color:#4b5563;line-height:1.5;">${bulletsHtml}</ul>`
-                  : ""
-              }
-
-              <div style="margin-top:8px;font-size:10px;color:#9ca3af;text-align:center;">
-                Demo preview – your full listing can include more details and photos.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- CTA tied to preview -->
-        <div style="text-align:center;margin:4px 0 22px;">
-          <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">
-            Like this preview? Turn it into a live listing on BizTradeHub in just a few minutes.
-          </div>
-          <a href="https://biztradehub.com"
-             style="display:inline-block;background:#111827;color:#ffffff;font-size:14px;font-weight:500;padding:11px 24px;border-radius:999px;text-decoration:none;">
-            Start your listing from this estimate
-          </a>
+              <!-- Copy + CTA column -->
+              <td style="vertical-align:top;width:45%;font-size:13px;color:#4b5563;">
+                <p style="margin:0 0 8px;line-height:1.6;">
+                  This is an example of how buyers would see your business on BizTradeHub: professional layout, clear financials, and a concise story that highlights why your business is attractive.
+                </p>
+                <p style="margin:0 0 8px;line-height:1.6;">
+                  When you create a listing, we’ll guide you through:
+                </p>
+                <ul style="margin:0 0 10px 16px;padding:0;line-height:1.5;">
+                  <li>Structuring your listing to appeal to serious buyers</li>
+                  <li>Presenting revenue, profit, and staff in a simple, trusted format</li>
+                  <li>Standing out against generic listings on other marketplaces</li>
+                </ul>
+                <p style="margin:0 0 10px;line-height:1.6;">
+                  You already have the numbers. Turning this into a live listing usually takes just a few minutes.
+                </p>
+                <div style="margin-top:4px;">
+                  <a href="https://biztradehub.com"
+                     style="display:inline-block;background:#111827;color:#ffffff;font-size:14px;font-weight:500;padding:11px 20px;border-radius:999px;text-decoration:none;">
+                    Start your listing from this estimate
+                  </a>
+                </div>
+              </td>
+            </tr>
+          </table>
         </div>
 
         <!-- Based on what you told us -->
@@ -374,7 +401,6 @@ Rules:
 
     // 3) Send the email using Resend
     const { error: emailError } = await resend.emails.send({
-      // Later: from: "BizTradeHub <valuation@biztradehub.com>",
       from: "BizTradeHub <onboarding@resend.dev>",
       to: [email],
       subject: "Your BizTradeHub business valuation estimate",
