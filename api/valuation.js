@@ -111,16 +111,13 @@ Rules:
   <div style="background-color:#f3f4f6;padding:32px 12px;">
     <div style="max-width:720px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e5e7eb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111827;box-shadow:0 18px 45px rgba(15,23,42,0.12);">
 
-      <!-- Header -->
-      <div style="background:linear-gradient(135deg,#020617,#0f766e);padding:18px 24px 20px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-          <div>
-            <div style="font-size:18px;font-weight:600;color:#ffffff;">BizTradeHub</div>
-            <div style="font-size:13px;color:#cbd5f5;margin-top:3px;">AI-powered business valuation report</div>
-          </div>
-          <div style="font-size:11px;color:#e5e7eb;background:rgba(15,23,42,0.5);border-radius:999px;padding:4px 10px;border:1px solid rgba(148,163,184,0.4);">
-            Prepared for: <span style="font-weight:600;">${businessType}</span> &nbsp;•&nbsp; Issued: ${issuedDate}
-          </div>
+      <!-- Header (simplified, no awkward pill) -->
+      <div style="background:linear-gradient(135deg,#020617,#0f766e);padding:20px 24px 22px;">
+        <div style="font-size:18px;font-weight:600;color:#ffffff;">BizTradeHub</div>
+        <div style="font-size:13px;color:#cbd5f5;margin-top:4px;">AI-powered business valuation report</div>
+        <div style="font-size:11px;color:#e5e7eb;margin-top:10px;">
+          Prepared for: <span style="font-weight:600;">${businessType}</span>
+          &nbsp;•&nbsp; Issued: ${issuedDate}
         </div>
       </div>
 
@@ -148,7 +145,7 @@ Rules:
         </div>
 
         <!-- Executive summary -->
-        <div style="background:#f3f4ff;border-radius:12px;padding:12px 14px;margin-bottom:24px;border:1px solid #e0e7ff;">
+        <div style="background:#f3f4ff;border-radius:12px;padding:12px 14px;margin-bottom:24px;border:1st solid #e0e7ff;border:1px solid #e0e7ff;">
           <div style="font-size:13px;font-weight:600;margin-bottom:4px;color:#111827;">Executive summary</div>
           <ul style="padding-left:18px;margin:4px 0 0;font-size:13px;line-height:1.6;color:#374151;">
             <li>We estimate your business could sell in the range of <strong>$${lowStr} – $${highStr} AUD</strong>, with a recommended listing price of <strong>$${recStr} AUD</strong>.</li>
@@ -210,33 +207,87 @@ Rules:
 
         <!-- How to improve -->
         <h2 style="font-size:16px;margin:0 0 8px;">How to potentially improve your valuation</h2>
-        <p style="font-size:13px;line-height:1.6;margin:0 0 18px;color:#4b5563;">
+        <p style="font-size:13px;line-height:1.6;margin:0 0 22px;color:#4b5563;">
           ${improvementHtml || ""}
         </p>
 
-        <!-- Listing preview -->
-        <h2 style="font-size:16px;margin:24px 0 8px;">How your listing could look</h2>
-        <p style="font-size:13px;line-height:1.6;margin:0 0 10px;color:#4b5563;">
-          Here’s a short preview of how your business could appear on BizTradeHub:
+        <!-- Listing teaser as a card -->
+        <h2 style="font-size:16px;margin:0 0 8px;">How your listing could look</h2>
+        <p style="font-size:13px;line-height:1.6;margin:0 0 12px;color:#4b5563;">
+          Here's a short preview of how your business could appear on BizTradeHub:
         </p>
-        <div style="border-radius:12px;border:1px solid #e5e7eb;background:#f9fafb;padding:14px 16px;margin-bottom:22px;">
-          <div style="font-size:14px;font-weight:600;margin-bottom:6px;color:#111827;">
-            ${listingTitle || "Profitable business opportunity"}
+
+        <div style="display:flex;justify-content:center;margin-bottom:22px;">
+          <div style="width:100%;max-width:320px;border-radius:18px;border:1px solid #e5e7eb;background:#ffffff;box-shadow:0 10px 30px rgba(15,23,42,0.08);overflow:hidden;">
+            <!-- Fake image / banner -->
+            <div style="height:120px;background-image:linear-gradient(135deg,#0f766e,#22c55e);background-size:cover;background-position:center;"></div>
+
+            <!-- Card body -->
+            <div style="padding:12px 14px 12px;">
+              <div style="font-size:14px;font-weight:600;margin-bottom:2px;color:#111827;">
+                ${listingTitle || "Profitable business opportunity"}
+              </div>
+              <div style="font-size:12px;color:#4b5563;margin-bottom:6px;">
+                <span style="font-weight:600;">Asking price:</span> $${recStr} AUD
+              </div>
+              <div style="font-size:12px;color:#4b5563;margin-bottom:10px;line-height:1.5;">
+                ${listingIntro || ""}
+              </div>
+
+              <div style="border-top:1px solid #e5e7eb;margin:8px 0 8px;"></div>
+
+              <!-- Stats rows -->
+              <table cellpadding="0" cellspacing="0" style="width:100%;font-size:12px;color:#4b5563;">
+                <tbody>
+                  <tr>
+                    <td style="padding:2px 0;">Revenue</td>
+                    <td style="padding:2px 0;text-align:right;font-weight:500;">$${formatAUD(
+                      annualRevenue
+                    )}/year</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:2px 0;">Profit</td>
+                    <td style="padding:2px 0;text-align:right;font-weight:500;">$${formatAUD(
+                      annualProfit
+                    )}/year</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:2px 0;">Staff</td>
+                    <td style="padding:2px 0;text-align:right;font-weight:500;">${staffCount ||
+                      "-"} employees</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:2px 0;">Location</td>
+                    <td style="padding:2px 0;text-align:right;font-weight:500;">${location ||
+                      "-"}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:2px 0;">Established</td>
+                    <td style="padding:2px 0;text-align:right;font-weight:500;">${
+                      yearsOperating || "N/A"
+                    }+ years</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              ${
+                bulletsHtml
+                  ? `<div style="border-top:1px solid #e5e7eb;margin:8px 0 6px;"></div>
+                     <ul style="padding-left:16px;margin:4px 0 0;font-size:11px;color:#4b5563;line-height:1.5;">${bulletsHtml}</ul>`
+                  : ""
+              }
+
+              <div style="margin-top:8px;font-size:10px;color:#9ca3af;text-align:center;">
+                Demo preview – your full listing can include more details and photos.
+              </div>
+            </div>
           </div>
-          <p style="font-size:13px;line-height:1.6;margin:0 0 8px;color:#374151;">
-            ${listingIntro || ""}
-          </p>
-          ${
-            bulletsHtml
-              ? `<ul style="padding-left:18px;margin:4px 0 0;font-size:13px;color:#374151;line-height:1.5;">${bulletsHtml}</ul>`
-              : ""
-          }
         </div>
 
         <!-- CTA -->
         <div style="margin:10px 0 6px;text-align:center;">
           <a href="https://biztradehub.com" style="display:inline-block;background:#111827;color:#ffffff;font-size:14px;font-weight:500;padding:11px 22px;border-radius:999px;text-decoration:none;">
-            When you're ready, list your business on BizTradeHub
+            Start your listing – it only takes a few minutes
           </a>
         </div>
 
