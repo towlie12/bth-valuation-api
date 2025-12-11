@@ -10,22 +10,24 @@ function formatAUD(value) {
   return Math.round(Number(value)).toLocaleString("en-AU");
 }
 
-// --- NEW: map categories to thumbnail URLs ---
+// --- Category → thumbnail URLs on YOUR domain ---
+const BASE_THUMB = "https://bth-valuation-api.vercel.app/thumbnails";
+
 const categoryImages = {
-  cafe: "https://source.unsplash.com/600x400/?cafe,coffee-shop,interior",
-  restaurant: "https://source.unsplash.com/600x400/?restaurant,dining,interior",
-  retail: "https://source.unsplash.com/600x400/?retail,store,shop,interior",
-  services: "https://source.unsplash.com/600x400/?office,workspace,team",
-  trades: "https://source.unsplash.com/600x400/?workshop,industrial,warehouse",
-  beauty: "https://source.unsplash.com/600x400/?salon,beauty,spa,interior",
-  fitness: "https://source.unsplash.com/600x400/?gym,fitness,studio",
-  healthcare: "https://source.unsplash.com/600x400/?clinic,medical,interior",
-  automotive: "https://source.unsplash.com/600x400/?auto,garage,car,workshop",
-  online: "https://source.unsplash.com/600x400/?ecommerce,online,business",
-  generic: "https://source.unsplash.com/600x400/?small,business,interior",
+  cafe:        `${BASE_THUMB}/cafe.jpg`,
+  restaurant:  `${BASE_THUMB}/restaurant.jpg`,
+  retail:      `${BASE_THUMB}/retail.jpg`,
+  services:    `${BASE_THUMB}/services.jpg`,
+  trades:      `${BASE_THUMB}/trades.jpg`,
+  beauty:      `${BASE_THUMB}/beauty.jpg`,
+  fitness:     `${BASE_THUMB}/fitness.jpg`,
+  healthcare:  `${BASE_THUMB}/healthcare.jpg`,
+  automotive:  `${BASE_THUMB}/automotive.jpg`,
+  online:      `${BASE_THUMB}/online.jpg`,
+  generic:     `${BASE_THUMB}/generic.jpg`,
 };
 
-// --- NEW: guess category from the free-text businessType ---
+// --- Guess category from the free-text businessType ---
 function inferCategory(businessTypeRaw = "") {
   const s = businessTypeRaw.toLowerCase();
 
@@ -146,7 +148,7 @@ Rules:
       year: "numeric",
     });
 
-    // NEW: pick thumbnail URL based on inferred category
+    // Pick thumbnail URL based on inferred category
     const category = inferCategory(businessType);
     const thumbUrl = categoryImages[category] || categoryImages.generic;
 
@@ -223,18 +225,18 @@ Rules:
             </tr>
             <tr>
               <td style="padding:4px 0;color:#6b7280;">Annual profit / owner's earnings</td>
-              <td style="padding:4px 0;text-align:right;font-weight:500;color:#111827;">$${formatAUD(
+              <td style="padding:4px 0;text-align:right;font-weight:500;">$${formatAUD(
                 annualProfit
               )} AUD</td>
             </tr>
             <tr>
               <td style="padding:4px 0;color:#6b7280;">Years operating</td>
-              <td style="padding:4px 0;text-align:right;font-weight:500;color:#111827;">${yearsOperating ||
+              <td style="padding:4px 0;text-align:right;font-weight:500;">${yearsOperating ||
                 "-"}</td>
             </tr>
             <tr>
               <td style="padding:4px 0;color:#6b7280;">Staff count</td>
-              <td style="padding:4px 0;text-align:right;font-weight:500;color:#111827;">${staffCount ||
+              <td style="padding:4px 0;text-align:right;font-weight:500;">${staffCount ||
                 "-"}</td>
             </tr>
           </tbody>
@@ -264,7 +266,7 @@ Rules:
         <div style="display:flex;justify-content:center;margin-bottom:22px;">
           <div style="width:100%;max-width:320px;border-radius:18px;border:1px solid #e5e7eb;background:#ffffff;box-shadow:0 10px 30px rgba(15,23,42,0.08);overflow:hidden;">
             <!-- Thumbnail image -->
-            <img src="${thumbUrl}" alt="Business thumbnail" style="width:100%;height:90px;object-fit:cover;display:block;">
+            <img src="${thumbUrl}" alt="" style="width:100%;height:90px;object-fit:cover;display:block;">
 
             <!-- Card body -->
             <div style="padding:12px 14px 12px;">
