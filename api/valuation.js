@@ -175,228 +175,290 @@ Rules:
     const thumbUrl =
       categoryImages[chosenCategory] || categoryImages.generic;
 
-    // 2) Build premium HTML email
-    const html = `
-  <div style="background-color:#f3f4f6;padding:32px 12px;">
-    <div style="max-width:720px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e5e7eb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111827;box-shadow:0 18px 45px rgba(15,23,42,0.12);">
+// 2) Build responsive HTML email (mobile-first, desktop enhanced)
+const html = `
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="x-apple-disable-message-reformatting">
+    <title>BizTradeHub Valuation</title>
 
-      <!-- Header -->
-      <div style="background:linear-gradient(135deg,#020617,#0f766e);padding:20px 24px 22px;">
-        <div style="font-size:18px;font-weight:600;color:#ffffff;">BizTradeHub</div>
-        <div style="font-size:13px;color:#cbd5f5;margin-top:4px;">AI-powered business valuation report</div>
-        <div style="font-size:11px;color:#e5e7eb;margin-top:10px;">
-          Prepared for: <span style="font-weight:600;">${businessType}</span>
-          &nbsp;•&nbsp; Issued: ${issuedDate}
-        </div>
-      </div>
+    <style>
+      /* ===== Email-safe resets ===== */
+      html, body { margin:0 !important; padding:0 !important; height:100% !important; width:100% !important; }
+      * { -ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; }
+      table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; border-collapse:collapse !important; }
+      img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; display:block; }
+      a { text-decoration:none; }
+      /* ===== Utilities ===== */
+      .container { width:100%; max-width:640px; margin:0 auto; }
+      .px { padding-left:24px; padding-right:24px; }
+      .muted { color:#6b7280; }
+      .text { color:#111827; }
+      .btn { display:inline-block; background:#111827; color:#ffffff; font-weight:600; border-radius:999px; padding:12px 18px; }
+      .card { background:#ffffff; border:1px solid #e5e7eb; border-radius:18px; overflow:hidden; }
+      .softcard { background:#f9fafb; border:1px solid #e5e7eb; border-radius:14px; }
+      .shadow { box-shadow:0 18px 45px rgba(15,23,42,0.12); }
+      .shadow-soft { box-shadow:0 8px 22px rgba(15,23,42,0.08); }
 
-      <!-- Main content -->
-      <div style="padding:26px 26px 28px;">
+      /* ===== Listing preview responsiveness =====
+         Mobile FIRST: stack (block). Desktop: two columns.
+      */
+      .lp-col { width:100%; display:block; }
+      .lp-gap { height:16px; line-height:16px; font-size:16px; }
+      .cta-wrap { padding-top:6px; }
 
-        <h1 style="font-size:22px;margin:0 0 8px;">Your valuation estimate</h1>
-        <p style="font-size:14px;line-height:1.6;margin:0 0 20px;color:#374151;">
-          Based on the details you provided, your business could be worth approximately:
-        </p>
+      /* Desktop enhancement */
+      @media screen and (min-width: 680px) {
+        .lp-row { display:table; width:100%; }
+        .lp-col { display:table-cell; vertical-align:top; }
+        .lp-left { width:340px; padding-right:16px; }
+        .lp-right { width:auto; }
+        .lp-gap { display:none; height:0; line-height:0; font-size:0; }
+      }
 
-        <!-- Big valuation block (recommended price first, stacked stats) -->
-        <div style="background:#f9fafb;border-radius:14px;padding:18px 20px;margin-bottom:20px;border:1px solid #e5e7eb;box-shadow:0 6px 18px rgba(15,23,42,0.04);">
-          <div style="font-size:18px;font-weight:600;margin-bottom:4px;color:#111827;">
-            Recommended listing price: <span style="font-size:20px;">$${recStr} AUD</span>
-          </div>
+      /* Mobile spacing tweaks */
+      @media screen and (max-width: 480px) {
+        .px { padding-left:16px !important; padding-right:16px !important; }
+        h1 { font-size:20px !important; }
+        .btn { display:block !important; text-align:center !important; }
+      }
+    </style>
+  </head>
 
-          <div style="font-size:13px;margin-bottom:8px;color:#4b5563;">
-            Estimated sale range: <strong>$${lowStr} – $${highStr} AUD</strong>
-          </div>
+  <body style="background:#f3f4f6;">
+    <!-- Preheader (hidden preview text) -->
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+      Your BizTradeHub valuation estimate is ready — view your recommended listing price and next steps.
+    </div>
 
-          <div style="font-size:12px;color:#4b5563;line-height:1.5;margin-top:4px;">
-            <div><strong>Multiple:</strong> ${multipleRange || "-"}</div>
-            <div><strong>Confidence:</strong> ${confidence || "Medium"}</div>
-            <div><strong>Expected sale window:</strong> ${sellTime || "3–9 months"}</div>
-          </div>
-        </div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;">
+      <tr>
+        <td style="padding:32px 12px;">
 
-        <!-- Executive summary -->
-        <div style="background:#f3f4ff;border-radius:12px;padding:12px 14px;margin-bottom:20px;border:1px solid #e0e7ff;">
-          <div style="font-size:13px;font-weight:600;margin-bottom:4px;color:#111827;">Executive summary</div>
-          <ul style="padding-left:18px;margin:4px 0 0;font-size:13px;line-height:1.6;color:#374151;">
-            <li>We estimate your business could sell in the range of <strong>$${lowStr} – $${highStr} AUD</strong>, with a recommended listing price of <strong>$${recStr} AUD</strong>.</li>
-            <li>The estimate is based primarily on your reported owner's earnings of <strong>$${formatAUD(
-              annualProfit
-            )} AUD</strong> and typical sale multiples for similar businesses.</li>
-            <li>Assuming normal market conditions, a realistic sale window is around <strong>${
-              sellTime || "3–9 months"
-            }</strong>.</li>
-          </ul>
-        </div>
-
-        <!-- Listing preview: card on the left, copy + CTA on the right -->
-        <h2 style="font-size:16px;margin:0 0 6px;">See how your business would appear to buyers</h2>
-        <p style="font-size:13px;line-height:1.6;margin:0 0 10px;color:#4b5563;">
-          Here’s how your business could look as a live listing on BizTradeHub, based on the details you provided:
-        </p>
-
-        <div style="margin-bottom:22px;">
-          <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">
+          <!-- Outer card -->
+          <table role="presentation" class="container card shadow" cellpadding="0" cellspacing="0" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+            <!-- Header -->
             <tr>
-              <!-- Card column -->
-              <td style="vertical-align:top;padding-right:16px;">
-                <div style="width:100%;max-width:320px;border-radius:18px;border:1px solid #e5e7eb;background:#ffffff;box-shadow:0 10px 30px rgba(15,23,42,0.08);overflow:hidden;text-align:left;">
-                  <div style="width:100%;height:130px;background:#e5e7eb;overflow:hidden;">
-                    <img src="${thumbUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
-                  </div>
-                  <div style="padding:12px 14px 12px;">
-                    <div style="font-size:14px;font-weight:600;margin-bottom:4px;color:#111827;">
-                      ${listingTitle || "Profitable business opportunity"}
-                    </div>
-                    <div style="font-size:12px;color:#4b5563;margin-bottom:6px;">
-                      <span style="font-weight:600;">Asking price:</span> $${recStr} AUD
-                    </div>
-                    ${
-                      shortIntro
-                        ? `<div style="font-size:12px;color:#4b5563;margin-bottom:8px;line-height:1.5;">
-                             ${shortIntro}
-                           </div>`
-                        : ""
-                    }
-                    <div style="border-top:1px solid #e5e7eb;margin:6px 0 8px;"></div>
-                    <table cellpadding="0" cellspacing="0" style="width:100%;font-size:12px;color:#4b5563;">
-                      <tbody>
-                        <tr>
-                          <td style="padding:4px 0;">Revenue</td>
-                          <td style="padding:4px 0;text-align:right;font-weight:500;">$${formatAUD(
-                            annualRevenue
-                          )}/year</td>
-                        </tr>
-                        <tr>
-                          <td style="padding:4px 0;">Profit</td>
-                          <td style="padding:4px 0;text-align:right;font-weight:500;">$${formatAUD(
-                            annualProfit
-                          )}/year</td>
-                        </tr>
-                        <tr>
-                          <td style="padding:4px 0;">Staff</td>
-                          <td style="padding:4px 0;text-align:right;font-weight:500;">${staffCount ||
-                            "-"} employees</td>
-                        </tr>
-                        <tr>
-                          <td style="padding:4px 0;">Location</td>
-                          <td style="padding:4px 0;text-align:right;font-weight:500;">${location ||
-                            "-"}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                    ${
-                      bulletsHtml
-                        ? `<div style="border-top:1px solid #e5e7eb;margin:6px 0 4px;"></div>
-                           <ul style="padding-left:16px;margin:4px 0 0;font-size:11px;color:#4b5563;line-height:1.5;">${bulletsHtml}</ul>`
-                        : ""
-                    }
-                    <div style="margin-top:8px;font-size:10px;color:#9ca3af;text-align:center;">
-                      Demo preview – your full listing can include more details and photos.
-                    </div>
-                  </div>
+              <td style="background:linear-gradient(135deg,#020617,#0f766e); padding:20px 24px 22px;">
+                <div style="font-size:18px;font-weight:700;color:#ffffff;">BizTradeHub</div>
+                <div style="font-size:13px;color:#cbd5f5;margin-top:4px;">AI-powered business valuation report</div>
+                <div style="font-size:11px;color:#e5e7eb;margin-top:10px;">
+                  Prepared for: <span style="font-weight:700;">${businessType}</span>
+                  &nbsp;•&nbsp; Issued: ${issuedDate}
                 </div>
               </td>
+            </tr>
 
-              <!-- Copy + CTA column -->
-              <td style="vertical-align:top;width:45%;font-size:13px;color:#4b5563;">
-                <p style="margin:0 0 8px;line-height:1.6;">
-                  This is an example of how buyers would see your business on BizTradeHub: professional layout, clear financials, and a concise story that highlights why your business is attractive.
+            <!-- Body -->
+            <tr>
+              <td class="px" style="padding-top:26px;padding-bottom:28px;color:#111827;">
+
+                <h1 style="font-size:22px; margin:0 0 8px; color:#111827;">Your valuation estimate</h1>
+                <p style="font-size:14px; line-height:1.6; margin:0 0 20px; color:#374151;">
+                  Based on the details you provided, your business could be worth approximately:
                 </p>
-                <p style="margin:0 0 8px;line-height:1.6;">
-                  When you create a listing, we’ll guide you through:
-                </p>
-                <ul style="margin:0 0 10px 16px;padding:0;line-height:1.5;">
-                  <li>Structuring your listing to appeal to serious buyers</li>
-                  <li>Presenting revenue, profit, and staff in a simple, trusted format</li>
-                  <li>Standing out against generic listings on other marketplaces</li>
-                </ul>
-                <p style="margin:0 0 10px;line-height:1.6;">
-                  You already have the numbers. Turning this into a live listing usually takes just a few minutes.
-                </p>
-                <div style="margin-top:4px;">
-                  <a href="https://biztradehub.com"
-                     style="display:inline-block;background:#111827;color:#ffffff;font-size:14px;font-weight:500;padding:11px 20px;border-radius:999px;text-decoration:none;">
-                    Start your listing from this estimate
-                  </a>
+
+                <!-- Big valuation block -->
+                <div class="softcard" style="padding:18px 20px; margin-bottom:20px; box-shadow:0 6px 18px rgba(15,23,42,0.04);">
+                  <div style="font-size:18px;font-weight:700;margin-bottom:4px;color:#111827;">
+                    Recommended listing price: <span style="font-size:20px;">$${recStr} AUD</span>
+                  </div>
+
+                  <div style="font-size:13px;margin-bottom:8px;color:#4b5563;">
+                    Estimated sale range: <strong>$${lowStr} – $${highStr} AUD</strong>
+                  </div>
+
+                  <div style="font-size:12px;color:#4b5563;line-height:1.6;margin-top:4px;">
+                    <div><strong>Multiple:</strong> ${multipleRange || "-"}</div>
+                    <div><strong>Confidence:</strong> ${confidence || "Medium"}</div>
+                    <div><strong>Expected sale window:</strong> ${sellTime || "3–9 months"}</div>
+                  </div>
                 </div>
+
+                <!-- Executive summary -->
+                <div style="background:#f3f4ff;border:1px solid #e0e7ff;border-radius:12px;padding:12px 14px;margin-bottom:20px;">
+                  <div style="font-size:13px;font-weight:700;margin-bottom:4px;color:#111827;">Executive summary</div>
+                  <ul style="padding-left:18px;margin:6px 0 0;font-size:13px;line-height:1.7;color:#374151;">
+                    <li>We estimate your business could sell in the range of <strong>$${lowStr} – $${highStr} AUD</strong>, with a recommended listing price of <strong>$${recStr} AUD</strong>.</li>
+                    <li>The estimate is based primarily on your reported owner's earnings of <strong>$${formatAUD(annualProfit)} AUD</strong> and typical sale multiples for similar businesses.</li>
+                    <li>Assuming normal market conditions, a realistic sale window is around <strong>${sellTime || "3–9 months"}</strong>.</li>
+                  </ul>
+                </div>
+
+                <!-- Listing preview -->
+                <h2 style="font-size:16px;margin:0 0 6px;color:#111827;">See how your business would appear to buyers</h2>
+                <p style="font-size:13px;line-height:1.6;margin:0 0 12px;color:#4b5563;">
+                  Here’s how your business could look as a live listing on BizTradeHub, based on the details you provided:
+                </p>
+
+                <!-- Mobile-first stack; desktop becomes 2-col via CSS -->
+                <div class="lp-row" style="margin-bottom:22px;">
+
+                  <!-- LEFT / TOP: listing card -->
+                  <div class="lp-col lp-left">
+                    <div class="card shadow-soft" style="max-width:360px;">
+                      <div style="width:100%; height:150px; background:#e5e7eb; overflow:hidden;">
+                        <img src="${thumbUrl}" alt="" style="width:100%;height:150px;object-fit:cover;">
+                      </div>
+
+                      <div style="padding:12px 14px 12px;">
+                        <div style="font-size:14px;font-weight:700;margin-bottom:4px;color:#111827;">
+                          ${listingTitle || "Profitable business opportunity"}
+                        </div>
+
+                        <div style="font-size:12px;color:#4b5563;margin-bottom:8px;">
+                          <span style="font-weight:700;">Asking price:</span> $${recStr} AUD
+                        </div>
+
+                        ${
+                          shortIntro
+                            ? `<div style="font-size:12px;color:#4b5563;margin-bottom:10px;line-height:1.55;">
+                                 ${shortIntro}
+                               </div>`
+                            : ""
+                        }
+
+                        <div style="border-top:1px solid #e5e7eb;margin:8px 0 10px;"></div>
+
+                        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="font-size:12px;color:#4b5563;">
+                          <tr>
+                            <td style="padding:4px 0;">Revenue</td>
+                            <td style="padding:4px 0;text-align:right;font-weight:600;">$${formatAUD(annualRevenue)}/year</td>
+                          </tr>
+                          <tr>
+                            <td style="padding:4px 0;">Profit</td>
+                            <td style="padding:4px 0;text-align:right;font-weight:600;">$${formatAUD(annualProfit)}/year</td>
+                          </tr>
+                          <tr>
+                            <td style="padding:4px 0;">Staff</td>
+                            <td style="padding:4px 0;text-align:right;font-weight:600;">${staffCount || "-"} employees</td>
+                          </tr>
+                          <tr>
+                            <td style="padding:4px 0;">Location</td>
+                            <td style="padding:4px 0;text-align:right;font-weight:600;">${location || "-"}</td>
+                          </tr>
+                        </table>
+
+                        ${
+                          bulletsHtml
+                            ? `<div style="border-top:1px solid #e5e7eb;margin:10px 0 6px;"></div>
+                               <ul style="padding-left:16px;margin:6px 0 0;font-size:11px;color:#4b5563;line-height:1.55;">
+                                 ${bulletsHtml}
+                               </ul>`
+                            : ""
+                        }
+
+                        <div style="margin-top:10px;font-size:10px;color:#9ca3af;text-align:center;">
+                          Demo preview – your full listing can include more details and photos.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="lp-gap">&nbsp;</div>
+
+                  <!-- RIGHT / BELOW: copy + CTA -->
+                  <div class="lp-col lp-right">
+                    <div style="font-size:13px;color:#4b5563;line-height:1.65;">
+                      <p style="margin:0 0 10px;">
+                        This is an example of how buyers would see your business on BizTradeHub: professional layout, clear financials, and a concise story that highlights why your business is attractive.
+                      </p>
+                      <p style="margin:0 0 8px;">When you create a listing, we’ll guide you through:</p>
+                      <ul style="margin:0 0 12px 16px;padding:0;line-height:1.55;">
+                        <li>Structuring your listing to appeal to serious buyers</li>
+                        <li>Presenting revenue, profit, and staff in a simple, trusted format</li>
+                        <li>Standing out against generic listings on other marketplaces</li>
+                      </ul>
+                      <p style="margin:0 0 12px;">
+                        You already have the numbers. Turning this into a live listing usually takes just a few minutes.
+                      </p>
+
+                      <div class="cta-wrap">
+                        <a href="https://biztradehub.com"
+                           class="btn"
+                           style="display:inline-block;background:#111827;color:#ffffff;font-size:14px;font-weight:600;padding:12px 18px;border-radius:999px;">
+                          Start your listing from this estimate
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Based on what you told us -->
+                <h2 style="font-size:16px;margin:0 0 10px;color:#111827;">Based on what you told us</h2>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;margin-bottom:22px;">
+                  <tr>
+                    <td style="padding:4px 0;color:#6b7280;">Business type</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:600;color:#111827;">${businessType}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;color:#6b7280;">Location</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:600;color:#111827;">${location || "-"}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;color:#6b7280;">Annual revenue</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:600;color:#111827;">$${formatAUD(annualRevenue)} AUD</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;color:#6b7280;">Annual profit / owner's earnings</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:600;color:#111827;">$${formatAUD(annualProfit)} AUD</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;color:#6b7280;">Years operating</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:600;color:#111827;">${yearsOperating || "-"}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;color:#6b7280;">Staff count</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:600;color:#111827;">${staffCount || "-"}</td>
+                  </tr>
+                </table>
+
+                <!-- How calculated -->
+                <h2 style="font-size:16px;margin:0 0 8px;color:#111827;">How this valuation was calculated</h2>
+                <p style="font-size:13px;line-height:1.65;margin:0 0 8px;color:#374151;">
+                  This estimate is based on typical sale price multiples for similar small businesses in Australia, adjusted for your industry, reported profit, and risk profile.
+                </p>
+                <p style="font-size:13px;line-height:1.65;margin:0 0 18px;color:#4b5563;">
+                  ${notesHtml || ""}
+                </p>
+
+                <!-- Improve -->
+                <h2 style="font-size:16px;margin:0 0 8px;color:#111827;">How to potentially improve your valuation</h2>
+                <p style="font-size:13px;line-height:1.65;margin:0 0 22px;color:#4b5563;">
+                  ${improvementHtml || ""}
+                </p>
+
+                <!-- Disclaimer -->
+                <p style="font-size:11px;line-height:1.55;margin-top:8px;color:#9ca3af;">
+                  This is an AI-generated estimate only and does not constitute financial, legal, or taxation advice.
+                  It is based solely on the figures you entered and general market benchmarks for small businesses in Australia.
+                  For a formal valuation, please consult a qualified accountant, broker, or financial adviser.
+                </p>
+
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="background:#f9fafb;padding:12px 20px 16px;border-top:1px solid #e5e7eb;">
+                <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.5;">
+                  BizTradeHub Pty Ltd · Sydney, Australia<br>
+                  You’re receiving this email because you requested a business valuation on BizTradeHub.<br>
+                  © ${today.getFullYear()} BizTradeHub. All rights reserved.
+                </p>
               </td>
             </tr>
           </table>
-        </div>
 
-        <!-- Based on what you told us -->
-        <h2 style="font-size:16px;margin:0 0 10px;">Based on what you told us</h2>
-        <table cellpadding="0" cellspacing="0" style="width:100%;font-size:13px;margin-bottom:22px;border-collapse:collapse;">
-          <tbody>
-            <tr>
-              <td style="padding:4px 0;color:#6b7280;">Business type</td>
-              <td style="padding:4px 0;text-align:right;font-weight:500;color:#111827;">${businessType}</td>
-            </tr>
-            <tr>
-              <td style="padding:4px 0;color:#6b7280;">Location</td>
-              <td style="padding:4px 0;text-align:right;font-weight:500;color:#111827;">${location ||
-                "-"}</td>
-            </tr>
-            <tr>
-              <td style="padding:4px 0;color:#6b7280;">Annual revenue</td>
-              <td style="padding:4px 0;text-align:right;font-weight:500;color:#111827;">$${formatAUD(
-                annualRevenue
-              )} AUD</td>
-            </tr>
-            <tr>
-              <td style="padding:4px 0;color:#6b7280;">Annual profit / owner's earnings</td>
-              <td style="padding:4px 0;text-align:right;font-weight:500;">$${formatAUD(
-                annualProfit
-              )} AUD</td>
-            </tr>
-            <tr>
-              <td style="padding:4px 0;color:#6b7280;">Years operating</td>
-              <td style="padding:4px 0;text-align:right;font-weight:500;">${yearsOperating ||
-                "-"}</td>
-            </tr>
-            <tr>
-              <td style="padding:4px 0;color:#6b7280;">Staff count</td>
-              <td style="padding:4px 0;text-align:right;font-weight:500;">${staffCount ||
-                "-"}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- How this valuation was calculated -->
-        <h2 style="font-size:16px;margin:0 0 8px;">How this valuation was calculated</h2>
-        <p style="font-size:13px;line-height:1.6;margin:0 0 8px;color:#374151;">
-          This estimate is based on typical sale price multiples for similar small businesses in Australia, adjusted for your industry, reported profit, and risk profile.
-        </p>
-        <p style="font-size:13px;line-height:1.6;margin:0 0 18px;color:#4b5563;">
-          ${notesHtml || ""}
-        </p>
-
-        <!-- How to improve -->
-        <h2 style="font-size:16px;margin:0 0 8px;">How to potentially improve your valuation</h2>
-        <p style="font-size:13px;line-height:1.6;margin:0 0 22px;color:#4b5563;">
-          ${improvementHtml || ""}
-        </p>
-
-        <!-- Disclaimer -->
-        <p style="font-size:11px;line-height:1.5;margin-top:8px;color:#9ca3af;">
-          This is an AI-generated estimate only and does not constitute financial, legal, or taxation advice. 
-          It is based solely on the figures you entered and general market benchmarks for small businesses in Australia. 
-          For a formal valuation, please consult a qualified accountant, broker, or financial adviser.
-        </p>
-      </div>
-
-      <!-- Footer -->
-      <div style="background:#f9fafb;padding:10px 20px 14px;border-top:1px solid #e5e7eb;">
-        <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.5;">
-          BizTradeHub Pty Ltd · Sydney, Australia<br/>
-          You’re receiving this email because you requested a business valuation on BizTradeHub.<br/>
-          © ${today.getFullYear()} BizTradeHub. All rights reserved.
-        </p>
-      </div>
-
-    </div>
-  </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
 `;
 
     // 3) Send the email using Resend
